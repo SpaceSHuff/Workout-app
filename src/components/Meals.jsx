@@ -6,6 +6,7 @@ import BarcodeScanner from './BarcodeScanner'
 import PhotoNutrition from './PhotoNutrition'
 
 function Meals({ userProfile, foodLog, onAddFood, onRemoveFood, dailyCalorieGoal }) {
+  console.log('NEW MEALS COMPONENT LOADED - VERSION 2.0')
   const [activeTab, setActiveTab] = useState('diary')
   const [selectedCategory, setSelectedCategory] = useState('breakfast')
   const [expandedMeal, setExpandedMeal] = useState(null)
