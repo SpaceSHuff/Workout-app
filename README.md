@@ -18,12 +18,15 @@ A comprehensive fitness tracking application designed to help you build a person
 - Detailed instructions for sets, reps, and proper form
 - Real-time workout tracking with exercise progression
 
-### Meal Planning & Nutrition
-- Curated meal plans for breakfast, lunch, dinner, and snacks
-- Detailed nutritional information (calories, protein, carbs, fats)
-- Step-by-step recipes with ingredients lists
-- Nutrition tips for weight loss success
-- Meal timing and hydration guidance
+### Advanced Food Tracking & Nutrition
+- **Daily Food Diary**: Track everything you eat with detailed nutrition info
+- **Barcode Scanner**: Scan product barcodes for instant nutrition lookup (powered by Open Food Facts API)
+- **Photo Analysis**: Take photos of your meals for AI-powered nutrition estimation
+- **Manual Entry**: Search and add from a database of 30+ common foods
+- **Daily Calorie Goals**: Personalized calorie targets based on your profile
+- **Real-time Tracking**: Monitor calories, protein, carbs, and fats throughout the day
+- **Curated Meal Plans**: Healthy recipes for breakfast, lunch, dinner, and snacks
+- **Nutrition Tips**: Evidence-based guidance for weight loss success
 
 ### Progress Tracking
 - Dashboard with key statistics
@@ -45,6 +48,9 @@ A comprehensive fitness tracking application designed to help you build a person
 - **Frontend**: React 18 with Vite
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
+- **Barcode Scanning**: html5-qrcode library
+- **Food Database**: Open Food Facts API
+- **AI Features**: Photo-based nutrition estimation (demo mode)
 - **Data Persistence**: Local Storage
 - **Video Integration**: YouTube embeds
 
@@ -110,11 +116,22 @@ npm run preview
 - Complete all exercises to finish the workout
 
 ### 3. Track Your Meals
-- Visit the Meals tab
-- Browse breakfast, lunch, dinner, and snack options
-- View detailed nutritional information
-- Read cooking instructions and pro tips
-- Check out nutrition tips for weight loss guidance
+**Food Diary (Recommended for daily tracking):**
+- Visit the Meals tab and select "Food Diary"
+- Add foods using one of three methods:
+  - **Manual Entry**: Click "Add Food" to search from 30+ common foods
+  - **Barcode Scanner**: Click "Scan Barcode" to use your camera to scan product barcodes
+  - **Photo Analysis**: Click "Photo Analysis" to take a picture of your meal for AI estimation
+- View real-time calorie tracking with your daily goal
+- Monitor protein, carbs, and fats intake
+- Review and delete entries as needed
+
+**Meal Plans (For recipe ideas):**
+- Switch to "Meal Plans" tab
+- Browse healthy recipes for breakfast, lunch, dinner, and snacks
+- View detailed nutritional information and macros
+- Read step-by-step cooking instructions
+- Get pro tips for meal prep and nutrition
 
 ### 4. Monitor Your Progress
 - Access the Progress tab to view:
@@ -138,12 +155,16 @@ src/
 ├── components/
 │   ├── Dashboard.jsx       # Home dashboard with overview
 │   ├── Workouts.jsx        # Workout library and player
-│   ├── Meals.jsx           # Meal plans and nutrition tips
+│   ├── Meals.jsx           # Meal plans and food diary hub
+│   ├── FoodDiary.jsx       # Daily food tracking component
+│   ├── BarcodeScanner.jsx  # Barcode scanning with camera
+│   ├── PhotoNutrition.jsx  # AI photo-based nutrition estimation
 │   ├── Progress.jsx        # Progress tracking and analytics
 │   └── Profile.jsx         # User profile and settings
 ├── data/
 │   ├── workouts.js         # Workout routines database
-│   └── meals.js            # Meal plans and nutrition data
+│   ├── meals.js            # Meal plans and nutrition data
+│   └── foods.js            # Common foods database (30+ items)
 ├── App.jsx                 # Main app component with routing
 ├── main.jsx                # App entry point
 └── index.css               # Global styles with Tailwind
@@ -158,12 +179,20 @@ src/
 - Progressive overload system
 - Calorie burn estimates
 
+### Food Tracking System
+- **Food Database**: 30+ common foods with complete nutrition data
+- **Barcode Scanning**: Real-time product lookup via Open Food Facts API
+- **Photo Recognition**: AI-powered nutrition estimation from meal photos (demo)
+- **Daily Calorie Calculator**: BMR-based personalized calorie goals
+- **Macro Tracking**: Real-time protein, carbs, and fats monitoring
+- **Food History**: Complete log of daily food intake
+
 ### Meal Planning
 - 12 healthy recipes across all meal types
-- Macro tracking (protein, carbs, fats)
+- Detailed macro breakdown (protein, carbs, fats)
 - Calorie information for weight loss
-- Practical cooking instructions
-- Evidence-based nutrition tips
+- Step-by-step cooking instructions
+- Evidence-based nutrition tips and meal timing guidance
 
 ### Gamification
 - Experience point (XP) system
@@ -178,9 +207,10 @@ All your data is stored locally in your browser using Local Storage:
 - User profile information
 - Workout history
 - Weight tracking data
+- Food log and daily nutrition
 - Progress statistics
 
-**Note**: Data is stored on your device only. Clear your browser cache will reset all data.
+**Note**: Data is stored on your device only. Clearing your browser cache will reset all data.
 
 ## Customization
 
@@ -225,6 +255,23 @@ Edit `src/data/meals.js` to add new recipes:
 }
 ```
 
+### Adding New Foods to Database
+
+Edit `src/data/foods.js` to add foods to the common foods database:
+
+```javascript
+{
+  id: 34,
+  name: "Food Name (serving size)",
+  calories: 200,
+  protein: 20,
+  carbs: 15,
+  fats: 8,
+  serving: "1 cup",
+  category: "protein" // breakfast, protein, carbs, vegetables, snacks, beverages, condiments
+}
+```
+
 ## Browser Support
 
 - Chrome (recommended)
@@ -235,11 +282,13 @@ Edit `src/data/meals.js` to add new recipes:
 ## Tips for Success
 
 1. **Be Consistent**: Aim for 3-4 workouts per week
-2. **Track Everything**: Log your weight regularly to see trends
-3. **Follow Meal Plans**: Nutrition is 70% of weight loss
-4. **Start at Your Level**: Don't rush progression
-5. **Stay Hydrated**: Drink water before, during, and after workouts
-6. **Rest Days Matter**: Take 1-2 rest days per week for recovery
+2. **Track Everything**: Log your weight AND food daily for best results
+3. **Use the Food Diary**: Track calories to stay within your daily goal
+4. **Barcode Scanner is Your Friend**: Quick and accurate for packaged foods
+5. **Nutrition is Key**: Weight loss is 70% diet, 30% exercise
+6. **Start at Your Level**: Don't rush progression
+7. **Stay Hydrated**: Drink water before, during, and after workouts
+8. **Rest Days Matter**: Take 1-2 rest days per week for recovery
 
 ## Future Enhancements
 

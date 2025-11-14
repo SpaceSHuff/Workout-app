@@ -1,11 +1,18 @@
 import { useState } from 'react'
-import { Coffee, Sun, Moon, Cookie, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react'
+import { Coffee, Sun, Moon, Cookie, ChevronDown, ChevronUp, Lightbulb, BookOpen, ClipboardList, Scan, Camera } from 'lucide-react'
 import { mealPlans, nutritionTips } from '../data/meals'
+import FoodDiary from './FoodDiary'
+import BarcodeScanner from './BarcodeScanner'
+import PhotoNutrition from './PhotoNutrition'
 
-function Meals() {
+function Meals({ userProfile, foodLog, onAddFood, onRemoveFood, dailyCalorieGoal }) {
+  const [activeTab, setActiveTab] = useState('diary')
   const [selectedCategory, setSelectedCategory] = useState('breakfast')
   const [expandedMeal, setExpandedMeal] = useState(null)
   const [showTips, setShowTips] = useState(true)
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  const [showPhotoNutrition, setShowPhotoNutrition] = useState(false)
+  const [pendingFood, setPendingFood] = useState(null)
 
   const categories = [
     { id: 'breakfast', icon: Coffee, label: 'Breakfast' },
@@ -20,141 +27,265 @@ function Meals() {
     setExpandedMeal(expandedMeal === mealId ? null : mealId)
   }
 
+  const handleBarcodeSuccess = (foodData) => {
+    setPendingFood(foodData)
+    setShowBarcodeScanner(false)
+    // Auto-add with option to edit
+    if (window.confirm(`Add ${foodData.name} (${foodData.calories} cal) to your diary?`)) {
+      onAddFood({
+        ...foodData,
+        date: new Date().toISOString(),
+        id: Date.now()
+      })
+    }
+  }
+
+  const handlePhotoAnalysis = (foodData) => {
+    setPendingFood(foodData)
+    setShowPhotoNutrition(false)
+    // Auto-add with option to edit
+    if (window.confirm(`Add ${foodData.name} (${foodData.calories} cal) to your diary?\n\nNote: ${foodData.note || 'This is an AI estimate.'}`)) {
+      onAddFood({
+        ...foodData,
+        date: new Date().toISOString(),
+        id: Date.now()
+      })
+    }
+  }
+
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Meal Plans</h2>
-        <p className="text-gray-600">Healthy recipes to support your weight loss goals</p>
-      </div>
+      {/* Header with Tabs */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="p-6 pb-0">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Nutrition</h2>
 
-      {/* Category Tabs */}
-      <div className="bg-white rounded-lg shadow-md p-2">
-        <div className="grid grid-cols-4 gap-2">
-          {categories.map(category => {
-            const Icon = category.icon
-            return (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`flex flex-col items-center py-3 px-2 rounded-lg transition-all ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <Icon className="w-6 h-6 mb-1" />
-                <span className="text-xs font-medium">{category.label}</span>
-              </button>
-            )
-          })}
+          {/* Tab Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab('diary')}
+              className={`flex items-center gap-2 px-4 py-3 font-semibold rounded-t-lg transition-all ${
+                activeTab === 'diary'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <ClipboardList className="w-5 h-5" />
+              <span>Food Diary</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('plans')}
+              className={`flex items-center gap-2 px-4 py-3 font-semibold rounded-t-lg transition-all ${
+                activeTab === 'plans'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <BookOpen className="w-5 h-5" />
+              <span>Meal Plans</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Meal Cards */}
-      <div className="space-y-4">
-        {currentMeals.map(meal => (
-          <div
-            key={meal.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden"
-          >
+      {/* Food Diary Tab */}
+      {activeTab === 'diary' && (
+        <>
+          {/* Quick Action Buttons */}
+          <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => toggleMeal(meal.id)}
-              className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
+              onClick={() => setShowBarcodeScanner(true)}
+              className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-all text-left"
             >
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="text-lg font-bold text-gray-800 pr-4">{meal.name}</h3>
-                {expandedMeal === meal.id ? (
-                  <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                )}
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="bg-blue-50 rounded p-2">
-                  <p className="text-xs text-gray-600">Calories</p>
-                  <p className="text-sm font-bold text-blue-600">{meal.calories}</p>
+              <div className="flex items-center space-x-3">
+                <div className="bg-indigo-100 p-3 rounded-lg">
+                  <Scan className="w-6 h-6 text-indigo-600" />
                 </div>
-                <div className="bg-green-50 rounded p-2">
-                  <p className="text-xs text-gray-600">Protein</p>
-                  <p className="text-sm font-bold text-green-600">{meal.protein}g</p>
-                </div>
-                <div className="bg-yellow-50 rounded p-2">
-                  <p className="text-xs text-gray-600">Carbs</p>
-                  <p className="text-sm font-bold text-yellow-600">{meal.carbs}g</p>
-                </div>
-                <div className="bg-orange-50 rounded p-2">
-                  <p className="text-xs text-gray-600">Fats</p>
-                  <p className="text-sm font-bold text-orange-600">{meal.fats}g</p>
+                <div>
+                  <p className="font-semibold text-gray-800">Scan Barcode</p>
+                  <p className="text-xs text-gray-600">Quick & accurate</p>
                 </div>
               </div>
             </button>
 
-            {expandedMeal === meal.id && (
-              <div className="px-6 pb-6 space-y-4 border-t border-gray-100">
-                <div className="pt-4">
-                  <h4 className="font-semibold text-gray-800 mb-2">Ingredients</h4>
-                  <ul className="space-y-1">
-                    {meal.ingredients.map((ingredient, index) => (
-                      <li key={index} className="text-sm text-gray-600 flex items-start">
-                        <span className="text-indigo-600 mr-2">•</span>
-                        <span>{ingredient}</span>
-                      </li>
-                    ))}
-                  </ul>
+            <button
+              onClick={() => setShowPhotoNutrition(true)}
+              className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-all text-left"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <Camera className="w-6 h-6 text-purple-600" />
                 </div>
-
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Instructions</h4>
-                  <p className="text-sm text-gray-600">{meal.instructions}</p>
-                </div>
-
-                <div className="bg-indigo-50 rounded-lg p-3">
-                  <h4 className="font-semibold text-indigo-800 mb-1 text-sm">💡 Pro Tip</h4>
-                  <p className="text-sm text-indigo-700">{meal.tips}</p>
+                  <p className="font-semibold text-gray-800">Photo Analysis</p>
+                  <p className="text-xs text-gray-600">AI estimation</p>
                 </div>
               </div>
-            )}
+            </button>
           </div>
-        ))}
-      </div>
 
-      {/* Nutrition Tips Section */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <button
-          onClick={() => setShowTips(!showTips)}
-          className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
-        >
-          <div className="flex items-center space-x-2">
-            <Lightbulb className="w-6 h-6 text-yellow-500" />
-            <h3 className="text-lg font-bold text-gray-800">Nutrition Tips</h3>
+          {/* Food Diary Component */}
+          <FoodDiary
+            foodLog={foodLog}
+            onAddFood={onAddFood}
+            onRemoveFood={onRemoveFood}
+            dailyCalorieGoal={dailyCalorieGoal}
+          />
+        </>
+      )}
+
+      {/* Meal Plans Tab */}
+      {activeTab === 'plans' && (
+        <>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <p className="text-gray-600">Healthy recipes to support your weight loss goals</p>
           </div>
-          {showTips ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </button>
 
-        {showTips && (
-          <div className="px-6 pb-6 space-y-4 border-t border-gray-100">
-            {nutritionTips.map((section, index) => (
-              <div key={index} className="pt-4">
-                <h4 className="font-semibold text-gray-800 mb-3">{section.category}</h4>
-                <ul className="space-y-2">
-                  {section.tips.map((tip, tipIndex) => (
-                    <li key={tipIndex} className="text-sm text-gray-600 flex items-start">
-                      <span className="text-indigo-600 mr-2">✓</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
+          {/* Category Tabs */}
+          <div className="bg-white rounded-lg shadow-md p-2">
+            <div className="grid grid-cols-4 gap-2">
+              {categories.map(category => {
+                const Icon = category.icon
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`flex flex-col items-center py-3 px-2 rounded-lg transition-all ${
+                      selectedCategory === category.id
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-medium">{category.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Meal Cards */}
+          <div className="space-y-4">
+            {currentMeals.map(meal => (
+              <div
+                key={meal.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
+                <button
+                  onClick={() => toggleMeal(meal.id)}
+                  className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg font-bold text-gray-800 pr-4">{meal.name}</h3>
+                    {expandedMeal === meal.id ? (
+                      <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="bg-blue-50 rounded p-2">
+                      <p className="text-xs text-gray-600">Calories</p>
+                      <p className="text-sm font-bold text-blue-600">{meal.calories}</p>
+                    </div>
+                    <div className="bg-green-50 rounded p-2">
+                      <p className="text-xs text-gray-600">Protein</p>
+                      <p className="text-sm font-bold text-green-600">{meal.protein}g</p>
+                    </div>
+                    <div className="bg-yellow-50 rounded p-2">
+                      <p className="text-xs text-gray-600">Carbs</p>
+                      <p className="text-sm font-bold text-yellow-600">{meal.carbs}g</p>
+                    </div>
+                    <div className="bg-orange-50 rounded p-2">
+                      <p className="text-xs text-gray-600">Fats</p>
+                      <p className="text-sm font-bold text-orange-600">{meal.fats}g</p>
+                    </div>
+                  </div>
+                </button>
+
+                {expandedMeal === meal.id && (
+                  <div className="px-6 pb-6 space-y-4 border-t border-gray-100">
+                    <div className="pt-4">
+                      <h4 className="font-semibold text-gray-800 mb-2">Ingredients</h4>
+                      <ul className="space-y-1">
+                        {meal.ingredients.map((ingredient, index) => (
+                          <li key={index} className="text-sm text-gray-600 flex items-start">
+                            <span className="text-indigo-600 mr-2">•</span>
+                            <span>{ingredient}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">Instructions</h4>
+                      <p className="text-sm text-gray-600">{meal.instructions}</p>
+                    </div>
+
+                    <div className="bg-indigo-50 rounded-lg p-3">
+                      <h4 className="font-semibold text-indigo-800 mb-1 text-sm">💡 Pro Tip</h4>
+                      <p className="text-sm text-indigo-700">{meal.tips}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
-        )}
-      </div>
+
+          {/* Nutrition Tips Section */}
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <button
+              onClick={() => setShowTips(!showTips)}
+              className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <Lightbulb className="w-6 h-6 text-yellow-500" />
+                <h3 className="text-lg font-bold text-gray-800">Nutrition Tips</h3>
+              </div>
+              {showTips ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+
+            {showTips && (
+              <div className="px-6 pb-6 space-y-4 border-t border-gray-100">
+                {nutritionTips.map((section, index) => (
+                  <div key={index} className="pt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">{section.category}</h4>
+                    <ul className="space-y-2">
+                      {section.tips.map((tip, tipIndex) => (
+                        <li key={tipIndex} className="text-sm text-gray-600 flex items-start">
+                          <span className="text-indigo-600 mr-2">✓</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Barcode Scanner Modal */}
+      {showBarcodeScanner && (
+        <BarcodeScanner
+          onScanSuccess={handleBarcodeSuccess}
+          onClose={() => setShowBarcodeScanner(false)}
+        />
+      )}
+
+      {/* Photo Nutrition Modal */}
+      {showPhotoNutrition && (
+        <PhotoNutrition
+          onAnalysisComplete={handlePhotoAnalysis}
+          onClose={() => setShowPhotoNutrition(false)}
+        />
+      )}
     </div>
   )
 }

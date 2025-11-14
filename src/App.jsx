@@ -5,6 +5,7 @@ import Workouts from './components/Workouts'
 import Meals from './components/Meals'
 import Profile from './components/Profile'
 import Progress from './components/Progress'
+import { calculateDailyCalorieGoal } from './data/foods'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
@@ -34,6 +35,11 @@ function App() {
     return saved ? JSON.parse(saved) : []
   })
 
+  const [foodLog, setFoodLog] = useState(() => {
+    const saved = localStorage.getItem('foodLog')
+    return saved ? JSON.parse(saved) : []
+  })
+
   useEffect(() => {
     localStorage.setItem('userProfile', JSON.stringify(userProfile))
   }, [userProfile])
@@ -45,6 +51,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('weightHistory', JSON.stringify(weightHistory))
   }, [weightHistory])
+
+  useEffect(() => {
+    localStorage.setItem('foodLog', JSON.stringify(foodLog))
+  }, [foodLog])
 
   const updateUserProfile = (updates) => {
     setUserProfile(prev => ({ ...prev, ...updates }))
@@ -91,6 +101,16 @@ function App() {
     updateUserProfile({ weight })
   }
 
+  const addFood = (foodEntry) => {
+    setFoodLog(prev => [foodEntry, ...prev])
+  }
+
+  const removeFood = (foodId) => {
+    setFoodLog(prev => prev.filter(entry => entry.id !== foodId))
+  }
+
+  const dailyCalorieGoal = calculateDailyCalorieGoal(userProfile)
+
   const navItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard' },
     { id: 'workouts', icon: Dumbbell, label: 'Workouts' },
@@ -133,7 +153,13 @@ function App() {
           />
         )}
         {currentPage === 'meals' && (
-          <Meals userProfile={userProfile} />
+          <Meals
+            userProfile={userProfile}
+            foodLog={foodLog}
+            onAddFood={addFood}
+            onRemoveFood={removeFood}
+            dailyCalorieGoal={dailyCalorieGoal}
+          />
         )}
         {currentPage === 'progress' && (
           <Progress
