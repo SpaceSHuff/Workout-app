@@ -1,14 +1,32 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Upload, Loader, AlertCircle } from 'lucide-react'
 
 function PhotoNutrition({ onAnalysisComplete, onClose }) {
   const [selectedImage, setSelectedImage] = useState(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [useCamera, setUseCamera] = useState(false)
+  const [cameraLoading, setCameraLoading] = useState(false)
+  const [cameraError, setCameraError] = useState(null)
   const fileInputRef = useRef(null)
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
+
+  // Attach stream to video element when camera starts
+  useEffect(() => {
+    if (useCamera && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current
+    }
+  }, [useCamera])
+
+  // Cleanup: stop camera when component unmounts
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0]
@@ -22,18 +40,25 @@ function PhotoNutrition({ onAnalysisComplete, onClose }) {
   }
 
   const startCamera = async () => {
+    setCameraLoading(true)
+    setCameraError(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       })
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
       setUseCamera(true)
+      setCameraLoading(false)
+      // Stream will be attached to video element via useEffect
     } catch (err) {
       console.error("Error accessing camera:", err)
-      alert("Unable to access camera. Please check permissions.")
+      setCameraError("Unable to access camera. Please check permissions.")
+      setCameraLoading(false)
+      setTimeout(() => setCameraError(null), 5000)
     }
   }
 
@@ -116,7 +141,23 @@ function PhotoNutrition({ onAnalysisComplete, onClose }) {
             </div>
           </div>
 
-          {!selectedImage && !useCamera && (
+          {/* Camera Error */}
+          {cameraError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-red-700 text-sm">{cameraError}</p>
+            </div>
+          )}
+
+          {/* Camera Loading */}
+          {cameraLoading && (
+            <div className="text-center py-12">
+              <Loader className="w-16 h-16 text-indigo-600 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-600 font-semibold">Starting camera...</p>
+              <p className="text-sm text-gray-500 mt-2">Please allow camera access when prompted</p>
+            </div>
+          )}
+
+          {!selectedImage && !useCamera && !cameraLoading && (
             <div className="space-y-4">
               {/* Camera Option */}
               <button
@@ -151,15 +192,19 @@ function PhotoNutrition({ onAnalysisComplete, onClose }) {
           {/* Camera View */}
           {useCamera && (
             <div className="space-y-4">
-              <div className="w-full bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
+              <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ height: '500px' }}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-auto rounded-lg"
-                  style={{ minHeight: '400px', objectFit: 'cover' }}
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
+                <div className="absolute top-4 left-0 right-0 text-center">
+                  <p className="text-white bg-black bg-opacity-50 inline-block px-4 py-2 rounded-lg text-sm">
+                    Position your food in the frame
+                  </p>
+                </div>
               </div>
               <div className="flex gap-3">
                 <button
@@ -216,7 +261,7 @@ function PhotoNutrition({ onAnalysisComplete, onClose }) {
         </div>
 
         {/* How it works */}
-        {!selectedImage && !useCamera && (
+        {!selectedImage && !useCamera && !cameraLoading && (
           <div className="bg-gray-50 p-6 border-t border-gray-200">
             <h4 className="font-semibold text-gray-800 mb-3">How it works:</h4>
             <ol className="text-sm text-gray-600 space-y-2">
