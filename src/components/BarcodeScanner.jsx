@@ -28,15 +28,17 @@ function BarcodeScanner({ onScanSuccess, onClose }) {
         {
           fps: 10,
           qrbox: { width: 250, height: 150 },
-          aspectRatio: 1.7777778
+          aspectRatio: 1.777,
+          disableFlip: false
         },
         async (decodedText) => {
           // Barcode successfully scanned
+          console.log("Barcode scanned:", decodedText)
           await stopScanning()
           await fetchProductInfo(decodedText)
         },
         (errorMessage) => {
-          // Parse error, ignore
+          // Parse error, ignore (this fires frequently while scanning)
         }
       )
 
@@ -155,21 +157,30 @@ function BarcodeScanner({ onScanSuccess, onClose }) {
           {/* Scanner Container */}
           <div
             id="barcode-scanner"
-            className={isScanning ? 'w-full min-h-[400px]' : 'hidden'}
-            style={{ display: isScanning ? 'block' : 'none' }}
+            className={isScanning ? 'w-full' : 'hidden'}
+            style={{
+              display: isScanning ? 'block' : 'none',
+              minHeight: '450px',
+              maxWidth: '100%'
+            }}
           ></div>
 
           {isScanning && (
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600 mb-4">
-                Align the barcode within the frame
-              </p>
+            <div className="mt-4 text-center space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800 font-medium">
+                  📱 Align the barcode within the red frame
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Hold steady for best results
+                </p>
+              </div>
               <button
                 onClick={async () => {
                   await stopScanning()
                   onClose()
                 }}
-                className="text-gray-600 hover:text-gray-800 font-semibold"
+                className="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
