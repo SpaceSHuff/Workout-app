@@ -153,7 +153,11 @@ function BarcodeScanner({ onScanSuccess, onClose }) {
           )}
 
           {/* Scanner Container */}
-          <div id="barcode-scanner" className={isScanning ? '' : 'hidden'}></div>
+          <div
+            id="barcode-scanner"
+            className={isScanning ? 'w-full min-h-[400px]' : 'hidden'}
+            style={{ display: isScanning ? 'block' : 'none' }}
+          ></div>
 
           {isScanning && (
             <div className="mt-4 text-center">

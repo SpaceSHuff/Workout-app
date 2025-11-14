@@ -151,12 +151,16 @@ function PhotoNutrition({ onAnalysisComplete, onClose }) {
           {/* Camera View */}
           {useCamera && (
             <div className="space-y-4">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                className="w-full rounded-lg"
-              />
+              <div className="w-full bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-auto rounded-lg"
+                  style={{ minHeight: '400px', objectFit: 'cover' }}
+                />
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={capturePhoto}
