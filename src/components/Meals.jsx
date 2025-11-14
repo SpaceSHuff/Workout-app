@@ -59,7 +59,7 @@ function Meals({ userProfile, foodLog, onAddFood, onRemoveFood, dailyCalorieGoal
       {/* Header with Tabs */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-6 pb-0">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Nutrition</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4" style={{backgroundColor: 'yellow', padding: '10px'}}>🔥 NUTRITION - FOOD DIARY NEW VERSION 🔥</h2>
 
           {/* Tab Buttons */}
           <div className="flex gap-2">
